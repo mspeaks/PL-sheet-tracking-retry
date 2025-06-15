@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PL Sheet Tracker Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .filters {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        
+        .filter-group label {
+            font-weight: 500;
+            color: #555;
+        }
+        
+        select, input {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 2em;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .up-to-date { color: #22c55e; }
+        .due-soon { color: #f59e0b; }
+        .overdue { color: #ef4444; }
+        
+        .sheet-grid {
+            display: grid;
+            gap: 15px;
+        }
+        
+        .sheet-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            overflow: hidden;
+            border-left: 4px solid #ddd;
+        }
+        
+        .sheet-card.up-to-date { border-left-color: #22c55e; }
+        .sheet-card.due-soon { border-left-color: #f59e0b; }
+        .sheet-card.overdue { border-left-color: #ef4444; }
+        
+        .sheet-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: between;
+            align-items: center;
+        }
+        
+        .student-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            text-transform: uppercase;
+        }
+        
+        .status-badge.up-to-date {
+            background: #dcfce7;
+            color: #166534;
+        }
+        
+        .status-badge.due-soon {
+            background: #fef3c7;
+            color: #92400e;
+        }
+        
+        .status-badge.overdue {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+        
+        .sheet-details {
+            padding: 15px 20px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+        
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .detail-label {
+            font-size: 12px;
+            color: #666;
+            text-transform: uppercase;
+            font-weight: 500;
+        }
+        
+        .detail-value {
+            font-size: 14px;
+            color: #333;
+        }
+        
+        .sheet-link {
+            color: #3b82f6;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        
+        .sheet-link:hover {
+            text-decoration: underline;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+        
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Private Language Sheet Tracker</h1>
+        <p>Monitor student lesson sheet updates and teacher assignments</p>
+    </div>
+    
+    <div class="filters">
+        <div class="filter-group">
+            <label for="teacherFilter">Filter by Teacher</label>
+            <select id="teacherFilter">
+                <option value="">All Teachers</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="statusFilter">Filter by Status</label>
+            <select id="statusFilter">
+                <option value="">All Statuses</option>
+                <option value="up-to-date">Up to Date</option>
+                <option value="due-soon">Due Soon</option>
+                <option value="overdue">Overdue</option>
+            </select>
+        </div>
+        
+        <div class="filter-group">
+            <label for="searchFilter">Search Students</label>
+            <input type="text" id="searchFilter" placeholder="Search by name...">
+        </div>
+    </div>
+    
+    <div class="stats" id="stats">
+        <div class="stat-card">
+            <div class="stat-number up-to-date" id="upToDateCount">-</div>
+            <div class="stat-label">Up to Date</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number due-soon" id="dueSoonCount">-</div>
+            <div class="stat-label">Due Soon</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number overdue" id="overdueCount">-</div>
+            <div class="stat-label">Overdue</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-number" id="totalCount">-</div>
+            <div class="stat-label">Total Sheets</div>
+        </div>
+    </div>
+    
+    <div id="errorMessage" class="error" style="display: none;"></div>
+    <div id="loading" class="loading">Loading sheet data...</div>
+    <div id="sheetGrid" class="sheet-grid"></div>
+
+    <script>
+        let allSheets = [];
+        let filteredSheets = [];
+
+        async function loadSheetData() {
+            try {
+                const response = await fetch('/api/sheets');
+                if (!response.ok) throw new Error('Failed to fetch data');
+                
+                allSheets = await response.json();
+                filteredSheets = [...allSheets];
+                
+                updateStats();
+                updateTeacherFilter();
+                renderSheets();
+                
+                document.getElementById('loading').style.display = 'none';
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('errorMessage').textContent = 'Error loading sheet data: ' + error.message;
+                document.getElementById('errorMessage').style.display = 'block';
+            }
+        }
+
+        function updateStats() {
+            const stats = filteredSheets.reduce((acc, sheet) => {
+                acc.total++;
+                acc[sheet.calculatedStatus]++;
+                return acc;
+            }, { 'up-to-date': 0, 'due-soon': 0, 'overdue': 0, total: 0 });
+
+            document.getElementById('upToDateCount').textContent = stats['up-to-date'];
+            document.getElementById('dueSoonCount').textContent = stats['due-soon'];
+            document.getElementById('overdueCount').textContent = stats['overdue'];
+            document.getElementById('totalCount').textContent = stats.total;
+        }
+
+        function updateTeacherFilter() {
+            const teachers = [...new Set(allSheets.map(sheet => sheet.currentTeachers).filter(Boolean))];
+            const teacherSelect = document.getElementById('teacherFilter');
+            
+            // Clear existing options except "All Teachers"
+            teacherSelect.innerHTML = '<option value="">All Teachers</option>';
+            
+            teachers.sort().forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher;
+                option.textContent = teacher;
+                teacherSelect.appendChild(option);
+            });
+        }
+
+        function renderSheets() {
+            const grid = document.getElementById('sheetGrid');
+            
+            if (filteredSheets.length === 0) {
+                grid.innerHTML = '<div class="loading">No sheets match your filters</div>';
+                return;
+            }
+
+            grid.innerHTML = filteredSheets.map(sheet => `
+                <div class="sheet-card ${sheet.calculatedStatus}">
+                    <div class="sheet-header">
+                        <div class="student-name">${sheet.name || 'Unnamed Student'}</div>
+                        <div class="status-badge ${sheet.calculatedStatus}">
+                            ${sheet.calculatedStatus.replace('-', ' ')}
+                        </div>
+                    </div>
+                    <div class="sheet-details">
+                        <div class="detail-item">
+                            <div class="detail-label">Current Teachers</div>
+                            <div class="detail-value">${sheet.currentTeachers || 'Not assigned'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Actually Last Modified</div>
+                            <div class="detail-value">${sheet.lastModifiedDisplay || 'Unknown'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Modified By</div>
+                            <div class="detail-value">${sheet.lastModifiedBy || 'Unknown'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Lesson Type</div>
+                            <div class="detail-value">${sheet.lessonType || 'Not specified'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">On Holiday</div>
+                            <div class="detail-value">${sheet.onHoliday || 'No'}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Google Sheet</div>
+                            <div class="detail-value">
+                                ${sheet.sheetId ? 
+                                    `<a href="https://docs.google.com/spreadsheets/d/${sheet.sheetId}/edit" target="_blank" class="sheet-link">Open Sheet</a>` :
+                                    'No sheet ID'
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function applyFilters() {
+            const teacherFilter = document.getElementById('teacherFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
+
+            filteredSheets = allSheets.filter(sheet => {
+                const matchesTeacher = !teacherFilter || sheet.currentTeachers === teacherFilter;
+                const matchesStatus = !statusFilter || sheet.calculatedStatus === statusFilter;
+                const matchesSearch = !searchFilter || sheet.name.toLowerCase().includes(searchFilter);
+                
+                return matchesTeacher && matchesStatus && matchesSearch;
+            });
+
+            updateStats();
+            renderSheets();
+        }
+
+        // Event listeners
+        document.getElementById('teacherFilter').addEventListener('change', applyFilters);
+        document.getElementById('statusFilter').addEventListener('change', applyFilters);
+        document.getElementById('searchFilter').addEventListener('input', applyFilters);
+
+        // Load data on page load
+        loadSheetData();
+        
+        // Refresh data every 5 minutes
+        setInterval(loadSheetData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
