@@ -134,8 +134,8 @@ app.get('/api/sheets', async (req, res) => {
         student.lastModifiedDisplay = lastModDate.toLocaleDateString() + ' ' + lastModDate.toLocaleTimeString();
       } else {
         student.calculatedStatus = 'unknown';
-        student.lastModifiedDisplay = 'Unable to access';
-        student.lastModifiedBy = 'Unknown';
+        student.lastModifiedDisplay = 'Sheet not shared with service account';
+        student.lastModifiedBy = 'Need access to sheet';
       }
       
       return student;
