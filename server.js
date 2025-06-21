@@ -94,7 +94,7 @@ app.get('/api/sheets', async (req, res) => {
   try {
     const response = await sheets.spreadsheets.values.get({
       spreadsheetId: process.env.MASTER_SHEET_ID,
-      range: "'[Mai] PL Active students_Updated'!A:AE", // New tab and extended range for columns AD and AE
+      range: "'[Mai] PL Active students_Updated'!A:AG", // New tab and extended range for columns up to AG
     });
 
     const rows = response.data.values;
@@ -109,7 +109,7 @@ app.get('/api/sheets', async (req, res) => {
         name: `${row[0] || ''} ${row[1] || ''}`.trim(), // Combine first and last name from columns A and B
         firstName: row[0] || '',
         lastName: row[1] || '',
-        sheetId: row[29] || '', // Column AD (30th column, index 29)
+        sheetId: row[32] || '', // Column AG (33rd column, index 32)
         currentTeachers: cleanTeacherNames(row[30] || ''), // Column AE (31st column, index 30)
         lessonType: 'Private', // Default to Private since we don't have this data in new sheet
         term: '',
