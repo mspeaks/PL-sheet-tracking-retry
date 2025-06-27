@@ -198,9 +198,9 @@
     
     <div class="filters">
         <div class="filter-group">
-            <label for="teacherFilter">Filter by Teacher</label>
-            <select id="teacherFilter">
-                <option value="">All Teachers</option>
+            <label for="modifiedByFilter">Filter by Modified By</label>
+            <select id="modifiedByFilter">
+                <option value="">All Users</option>
             </select>
         </div>
         
@@ -256,7 +256,7 @@
                 filteredSheets = [...allSheets];
                 
                 updateStats();
-                updateTeacherFilter();
+                updateModifiedByFilter();
                 renderSheets();
                 
                 document.getElementById('loading').style.display = 'none';
@@ -282,18 +282,18 @@
             document.getElementById('totalCount').textContent = stats.total;
         }
 
-        function updateTeacherFilter() {
-            const teachers = [...new Set(allSheets.map(sheet => sheet.currentTeachers).filter(Boolean))];
-            const teacherSelect = document.getElementById('teacherFilter');
+        function updateModifiedByFilter() {
+            const modifiedByUsers = [...new Set(allSheets.map(sheet => sheet.lastModifiedBy).filter(Boolean))];
+            const modifiedBySelect = document.getElementById('modifiedByFilter');
             
-            // Clear existing options except "All Teachers"
-            teacherSelect.innerHTML = '<option value="">All Teachers</option>';
+            // Clear existing options except "All Users"
+            modifiedBySelect.innerHTML = '<option value="">All Users</option>';
             
-            teachers.sort().forEach(teacher => {
+            modifiedByUsers.sort().forEach(user => {
                 const option = document.createElement('option');
-                option.value = teacher;
-                option.textContent = teacher;
-                teacherSelect.appendChild(option);
+                option.value = user;
+                option.textContent = user;
+                modifiedBySelect.appendChild(option);
             });
         }
 
@@ -349,16 +349,16 @@
         }
 
         function applyFilters() {
-            const teacherFilter = document.getElementById('teacherFilter').value;
+            const modifiedByFilter = document.getElementById('modifiedByFilter').value;
             const statusFilter = document.getElementById('statusFilter').value;
             const searchFilter = document.getElementById('searchFilter').value.toLowerCase();
 
             filteredSheets = allSheets.filter(sheet => {
-                const matchesTeacher = !teacherFilter || sheet.currentTeachers === teacherFilter;
+                const matchesModifiedBy = !modifiedByFilter || sheet.lastModifiedBy === modifiedByFilter;
                 const matchesStatus = !statusFilter || sheet.calculatedStatus === statusFilter;
                 const matchesSearch = !searchFilter || sheet.name.toLowerCase().includes(searchFilter);
                 
-                return matchesTeacher && matchesStatus && matchesSearch;
+                return matchesModifiedBy && matchesStatus && matchesSearch;
             });
 
             updateStats();
@@ -366,7 +366,7 @@
         }
 
         // Event listeners
-        document.getElementById('teacherFilter').addEventListener('change', applyFilters);
+        document.getElementById('modifiedByFilter').addEventListener('change', applyFilters);
         document.getElementById('statusFilter').addEventListener('change', applyFilters);
         document.getElementById('searchFilter').addEventListener('input', applyFilters);
 
